@@ -71,15 +71,16 @@ class TABigDictionary(object):
         # 选择一个工作表
         worksheet = workbook.active
 
-        # 将工作表中的数据格式化为字符串
+        # 定义每列使用的间隔数量 第一列 第二列 第三列
+        column_spacing = [22, 40, 5]
         for i, row in enumerate(worksheet.iter_rows(values_only=True)):
             if not entry_value or entry_value in row:  # 搜索值为空的时候能全部显示，当有搜索值的时候只显示搜索值
                 row_str = ''
-                for cell in row[:3]:
-                    cell_str = str(cell).ljust(25)  # 将数据左对齐，并占用25个字符的宽度
+                for j, cell in enumerate(row[:3]):
+                    cell_str = str(cell).ljust(column_spacing[j])  # 根据列索引选择相应的间隔数量
                     row_str += cell_str
                 # 在文本框中插入表格数据
-                output_notebook.configure(state='normal')
+                output_notebook.configure(state='normal', spacing1=5)
                 output_notebook.insert(tk.END, row_str + '\n', f"row{i}")
                 output_notebook.tag_bind(f"row{i}", "<Button-1>", lambda event: self.show_information(event, worksheet, output_notebook, output_notebook_2))
                 output_notebook.configure(state='disabled')
