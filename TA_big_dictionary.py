@@ -72,23 +72,26 @@ class TABigDictionary(object):
         worksheet = workbook.active
 
         # 定义每列使用的间隔数量 第一列 第二列 第三列
-        column_spacing = [22, 40, 5]
-        for i, row in enumerate(worksheet.iter_rows(values_only=True)):
-            if not entry_value or entry_value in row:  # 搜索值为空的时候能全部显示，当有搜索值的时候只显示搜索值
+        column_spacing = [22, 45, 5]
+        for i, row in enumerate(worksheet.iter_rows(min_row=2, values_only=True)):
+            # if not entry_value or entry_value in row:  # 搜索值为空的时候能全部显示，当有搜索值的时候只显示搜索值
+            if not entry_value or any(entry_value.lower() in str(cell).lower() for cell in row[:3]):
                 row_str = ''
                 for j, cell in enumerate(row[:3]):
                     cell_str = str(cell).ljust(column_spacing[j])  # 根据列索引选择相应的间隔数量
                     row_str += cell_str
                 # 在文本框中插入表格数据
-                output_notebook.configure(state='normal', spacing1=5)
+                output_notebook.configure(state='normal', spacing1=5)  # 数值5表示文本列表上下间隔的距离。
                 output_notebook.insert(tk.END, row_str + '\n', f"row{i}")
-                output_notebook.tag_bind(f"row{i}", "<Button-1>", lambda event: self.show_information(event, worksheet, output_notebook, output_notebook_2))
+                output_notebook.tag_bind(f"row{i}", "<Button-1>",
+                                         lambda event: self.show_information(event, worksheet, output_notebook,
+                                                                             output_notebook_2))
                 output_notebook.configure(state='disabled')
         # 设置选中后的背景色为红色
         output_notebook.tag_configure("sel", background="red")
 
     def creating_ui(self):
-        self.root.geometry("600x700+100+100")
+        self.root.geometry("650x700+100+100")
 
         # 开始对整个面板进行分区处理
         frame = tk.PanedWindow(self.root, orient='vertical', sashrelief='sunken')
@@ -96,16 +99,18 @@ class TABigDictionary(object):
         frame_up = tk.PanedWindow(self.root, orient='horizontal', sashrelief='sunken')
         frame_dw = tk.PanedWindow(self.root, orient='horizontal', sashrelief='sunken')
         frame_text = tk.PanedWindow(self.root, orient='horizontal', sashrelief='sunken')
-        frame.add(frame_up, height=35), frame.add(frame_dw, height=265), frame.add(frame_text, height=300)
+        frame.add(frame_up, height=50), frame.add(frame_dw, height=250), frame.add(frame_text, height=300)
 
         # 第一面板的参数
         search_label = tk.Label(frame_up, text='请准确输入：')
         search_entry = tk.Entry(frame_up, textvariable=self.search_value)
         search_enter = tk.Button(frame_up, text='搜索', font=('楷体', 12), fg='black', width=5, height=1, command=lambda: self.workbook_show(search_entry.get(), output_notebook, output_notebook_2))
+        search_opation = tk.Label(frame_up, text="请注意函数名称中有部分“空格”转写成了“-”进行连接！", fg="red")
         # 第一面板参数排列
         search_label.grid(row=1, column=1)
         search_entry.grid(row=1, column=2)
         search_enter.grid(row=1, column=3)
+        search_opation.grid(row=2, column=2)
 
         # 在下方Text窗口输出表格信息，并支持点击某一行输出信息。
         output_notebook = tk.Text(frame_dw, state="disabled")
